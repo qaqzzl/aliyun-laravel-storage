@@ -1,0 +1,27 @@
+{
+    "name": "qaqzzl/aliyun-laravel-storage",
+    "description": "Aliyun Resource (Cloud) Storage SDK for Laravel 5",
+    "type": "library",
+    "require": {
+        "php": ">=5.4.0",
+        "aliyuncs/oss-sdk-php": "^2.4",
+        "league/flysystem": "^1.0",
+        ,
+    },
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "zerozz",
+            "email": "erppcc@163.com"
+        }
+    ],
+    "minimum-stability": "dev",
+
+    "autoload": {
+        "psr-4": {
+            "qaqzzl\\AliyunStorage\\": "src/"
+     }
+}
+
+
+}
