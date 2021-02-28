@@ -6,7 +6,6 @@ namespace qaqzzl\AliyunStorage;
 use League\Flysystem\Adapter\AbstractAdapter;
 use League\Flysystem\Config;
 use League\Flysystem\Util;
-use Illuminate\Support\Facades\Log;
 use OSS\Core\OssException;
 use OSS\OssClient;
 
@@ -47,6 +46,7 @@ class AliyunAdapter extends AbstractAdapter
     {
         $signature = base64_encode(hash_hmac('sha1', $string_to_sign_ordered, $this->accessKeySecret, true));
         $authorization = 'OSS ' . $this->accessKeyId . ':' . $signature;
+        return $authorization;
     }
 
     public function write($path, $contents, Config $config)
