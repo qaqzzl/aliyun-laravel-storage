@@ -1,5 +1,4 @@
 <?php
-
 use League\Flysystem\Filesystem;
 use OSS\OssClient;
 use qaqzzl\AliyunStorage\AliyunAdapter;
@@ -9,10 +8,10 @@ class AliyunAdapterTest extends TestCase
     function getAliyunAdapter()
     {
         $config = [
-            'bucket'=>'',
-            'endpoint'=>'',
-            'access_key'=>'',
-            'secret_key'=>'',
+            'bucket'=>'novel-ixcc',
+            'endpoint'=>'oss-cn-shanghai.aliyuncs.com',
+            'access_key'=>'LTAI4OkiPtl1oEcx',
+            'secret_key'=>'eNh5v5KNF0bs4vAWsv4XJp63AdN6CV',
         ];
 
         $isCname   = empty($config['isCName']) ? false : $config['isCName'];
@@ -36,8 +35,13 @@ class AliyunAdapterTest extends TestCase
     }
 
 
+    /**
+     * 上传测试
+     */
     public function testPut()
     {
-        echo '1';
+        $storage = $this->getAliyunAdapter();
+        $content = file_get_contents('https://novel-h5-ixcc.oss-cn-shanghai.aliyuncs.com/h5/img/Welfare-bao.6fe0bf36.png');
+        $this->assertEquals(true, $storage->put('test1.png', $content));
     }
 }
