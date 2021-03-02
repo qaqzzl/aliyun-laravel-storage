@@ -12,10 +12,16 @@ v0.0.1  只简单实现了put上传方法
 
 - ```composer require qaqzzl/aliyun-laravel-storage```
 
-#### laravel <= 5.5
-- ```config/app.php``` 里面的 ```providers``` 数组， 加上一行 
-  ```qaqzzl\AliyunStorage\AliyunFilesystemServiceProvider::class```
-#### 配置
+#### 添加 service provider（optional. if laravel < 5.5 || lumen）
+```PHP
+// laravel < 5.5
+qaqzzl\AliyunStorage\AliyunFilesystemServiceProvider::class,
+
+// lumen
+$app->register(qaqzzl\AliyunStorage\AliyunFilesystemServiceProvider::class);
+```
+
+#### 配置文件
 - ```config/filesystem.php``` 里面的 ```disks```数组加上：
 ```php
 'disks' => [
@@ -34,4 +40,10 @@ v0.0.1  只简单实现了put上传方法
         'notify_url'    => '',  //持久化处理回调地址
     ],
 ],
+```
+
+## 使用方法
+```php
+$disk = \Storage::disk('ali');
+$disk->put('file.jpg',$contents);               //上传文件
 ```
