@@ -1,8 +1,8 @@
-# Aliyun OSS云储存 Laravel 5 Storage版
+# 阿里云OSS云储存 Laravel Storage版
 
 基于 https://github.com/aliyun/aliyun-oss-php-sdk 开发
 
-符合Laravel 5 的Storage用法。
+符合Laravel 的Storage用法。
 
 ## 更新
 
