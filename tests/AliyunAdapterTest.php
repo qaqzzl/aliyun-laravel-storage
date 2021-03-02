@@ -7,6 +7,7 @@ class AliyunAdapterTest extends TestCase
 {
     function getAliyunAdapter()
     {
+        $config = require_once('./config.php');
         /*
         $config = [
             'bucket'=>'',
@@ -53,4 +54,13 @@ class AliyunAdapterTest extends TestCase
         $resource = fopen('./qrcode_bg1.jpg','r');
         $this->assertEquals(true, $file_system->putStream('test1.png', $resource));
     }
+
+    public function testUpdate()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $content = 'test.test';
+        $this->assertEquals(true, $file_system->update('test1.png', $content));
+    }
+
+
 }
