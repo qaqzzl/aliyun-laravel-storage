@@ -10,3 +10,6 @@ composer.lock
 vendor
 src/package.xml
 .idea/
+.phpunit.result.cache
+/tests/config.php
+.env

@@ -49,6 +49,14 @@ class AliyunAdapter extends AbstractAdapter
         return $authorization;
     }
 
+    /**
+     * Write a new file.
+     *
+     * @param string $path
+     * @param string $contents
+     * @param Config $config
+     * @return array|false false on failure file meta data on success
+     */
     public function write($path, $contents, Config $config)
     {
         $object = $this->applyPathPrefix($path);
@@ -69,9 +77,20 @@ class AliyunAdapter extends AbstractAdapter
         return ['path'=>$path];
     }
 
+    /**
+     * Write a new file using a stream.
+     *
+     * @param string   $path
+     * @param resource $resource
+     * @param Config   $config   Config object
+     *
+     * @return array|false false on failure file meta data on success
+     */
     public function writeStream($path, $resource, Config $config)
     {
+        $contents = stream_get_contents($resource);
 
+        return $this->write($path, $contents, $config);
     }
 
     public function update($path, $contents, Config $config)

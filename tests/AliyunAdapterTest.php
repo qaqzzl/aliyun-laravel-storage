@@ -7,12 +7,14 @@ class AliyunAdapterTest extends TestCase
 {
     function getAliyunAdapter()
     {
+        /*
         $config = [
-            'bucket'=>'novel-ixcc',
-            'endpoint'=>'oss-cn-shanghai.aliyuncs.com',
-            'access_key'=>'LTAI4OkiPtl1oEcx',
-            'secret_key'=>'eNh5v5KNF0bs4vAWsv4XJp63AdN6CV',
+            'bucket'=>'',
+            'endpoint'=>'',
+            'access_key'=>'',
+            'secret_key'=>'',
         ];
+        */
 
         $isCname   = empty($config['isCName']) ? false : $config['isCName'];
         $bucket   = $config['bucket'];
@@ -40,8 +42,15 @@ class AliyunAdapterTest extends TestCase
      */
     public function testPut()
     {
-        $storage = $this->getAliyunAdapter();
+        $file_system = $this->getAliyunAdapter();
         $content = file_get_contents('https://novel-h5-ixcc.oss-cn-shanghai.aliyuncs.com/h5/img/Welfare-bao.6fe0bf36.png');
-        $this->assertEquals(true, $storage->put('test1.png', $content));
+        $this->assertEquals(true, $file_system->put('test1.png', $content));
+    }
+
+    public function testPutStream()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $resource = fopen('./qrcode_bg1.jpg','r');
+        $this->assertEquals(true, $file_system->putStream('test1.png', $resource));
     }
 }

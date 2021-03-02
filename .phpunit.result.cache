@@ -1,1 +1,0 @@
-C:37:"PHPUnit\Runner\DefaultTestResultCache":192:{a:2:{s:7:"defects";a:1:{s:26:"AliyunAdapterTest::testPut";i:5;}s:5:"times";a:2:{s:26:"AliyunAdapterTest::testPut";d:0.334;s:52:"League\Flysystem\Util\UtilMimeTests::testNoExtension";d:0.004;}}}
