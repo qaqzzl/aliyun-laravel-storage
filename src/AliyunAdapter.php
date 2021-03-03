@@ -4,6 +4,7 @@
 namespace qaqzzl\AliyunStorage;
 
 use League\Flysystem\Adapter\AbstractAdapter;
+use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
 use League\Flysystem\Util;
 use OSS\Core\OssException;
@@ -17,14 +18,16 @@ class AliyunAdapter extends AbstractAdapter
     protected $bucket;
     protected $accessKeyId;
     protected $accessKeySecret;
+    protected $options;
 
 
-    public function __construct(OssClient $client, $bucket, $accessKeyId, $accessKeySecret)
+    public function __construct(OssClient $client, $bucket, $accessKeyId, $accessKeySecret, $options=[])
     {
         $this->client = $client;
         $this->bucket = $bucket;
         $this->accessKeyId = $accessKeyId;
         $this->accessKeySecret = $accessKeySecret;
+        $this->options = $options;
     }
 
     /**
@@ -35,6 +38,12 @@ class AliyunAdapter extends AbstractAdapter
     public function getClient()
     {
         return $this->client;
+    }
+
+    protected function getOptionsByConfig(Config $config)
+    {
+        $options = array_merge($this->options, $config->get('options',[]));
+        return $options;
     }
 
     private function logError(OssException $error, $extra = null)
@@ -65,7 +74,8 @@ class AliyunAdapter extends AbstractAdapter
     public function write($path, $contents, Config $config)
     {
         $object = $this->applyPathPrefix($path);
-        $options = $config->get('options');
+        $options = $this->getOptionsByConfig($config);
+
 
         if (! isset($options[OssClient::OSS_LENGTH])) {
             $options[OssClient::OSS_LENGTH] = Util::contentSize($contents);
@@ -157,7 +167,13 @@ class AliyunAdapter extends AbstractAdapter
     {
         $path = $this->applyPathPrefix($path);
         $newpath = $this->applyPathPrefix($newpath);
-        return $this->client->copyObject($this->bucket, $path, $this->bucket, $newpath);
+        try {
+            $this->client->copyObject($this->bucket, $path, $this->bucket, $newpath, $this->options);
+        } catch (OssException $e) {
+            $this->logError($e);
+            return false;
+        }
+        return true;
     }
 
     /**
@@ -170,7 +186,13 @@ class AliyunAdapter extends AbstractAdapter
     public function delete($path)
     {
         $path = $this->applyPathPrefix($path);
-        return $this->client->deleteObject($this->bucket, $path);
+        try {
+            $this->client->deleteObject($this->bucket, $path, $this->options);
+        } catch (OssException $e) {
+            $this->logError($e);
+            return false;
+        }
+        return true;
     }
 
 
@@ -181,7 +203,6 @@ class AliyunAdapter extends AbstractAdapter
     {
         $dirname = rtrim($this->applyPathPrefix($dirname), '/').'/';
         $dirObjects = $this->listContents($dirname, true);
-
         if(!empty($dirObjects['objects'])){
 
             foreach($dirObjects['objects'] as $object) {
@@ -189,7 +210,7 @@ class AliyunAdapter extends AbstractAdapter
             }
 
             try {
-                $this->client->deleteObjects($this->bucket, $objects);
+                $this->client->deleteObjects($this->bucket, $objects, $this->options);
             } catch (OssException $e) {
                 $this->logError($e);
                 return false;
@@ -198,7 +219,7 @@ class AliyunAdapter extends AbstractAdapter
         }
 
         try {
-            $this->client->deleteObject($this->bucket, $dirname);
+            $this->client->deleteObject($this->bucket, $dirname, $this->options);
         } catch (OssException $e) {
             $this->logError($e);
             return false;
@@ -218,10 +239,15 @@ class AliyunAdapter extends AbstractAdapter
      */
     public function createDir($dirname, Config $config)
     {
-        $object = $this->applyPathPrefix($dirname);
-        $options = $config->get('options');
-        $this->client->createObjectDir($this->bucket, $object, $options);
-        return ['dirname' => $dirname];
+        $dirname = $this->applyPathPrefix($dirname);
+        $options = $this->getOptionsByConfig($config);
+        try {
+            $this->client->createObjectDir($this->bucket, $dirname, $options);
+        } catch (OssException $e) {
+            $this->logError($e);
+            return false;
+        }
+        return compact('dirname');
     }
 
     /**
@@ -235,8 +261,13 @@ class AliyunAdapter extends AbstractAdapter
     public function setVisibility($path, $visibility)
     {
         $object = $this->applyPathPrefix($path);
+        if ($visibility == AdapterInterface::VISIBILITY_PRIVATE){
+            $visibility = OssClient::OSS_ACL_TYPE_PRIVATE;
+        } else {
+            $visibility = OssClient::OSS_ACL_TYPE_PUBLIC_READ;
+        }
         try {
-            $this->client->putObjectAcl($this->bucket, $object, $visibility);
+            $this->client->putObjectAcl($this->bucket, $object, $visibility, $this->options);
         } catch (OssException $e) {
             $this->logError($e);
             return false;
@@ -254,7 +285,7 @@ class AliyunAdapter extends AbstractAdapter
     public function has($path)
     {
         $object = $this->applyPathPrefix($path);
-        return $this->client->doesObjectExist($this->bucket, $object);
+        return $this->client->doesObjectExist($this->bucket, $object, $this->options);
     }
 
     /**
@@ -268,12 +299,12 @@ class AliyunAdapter extends AbstractAdapter
     {
         $object = $this->applyPathPrefix($path);
         try{
-            $content = $this->client->getObject($this->bucket, $object);
+            $contents = $this->client->getObject($this->bucket, $object, $this->options);
         } catch(OssException $e) {
             $this->logError($e);
             return false;
         }
-        return compact('content');
+        return compact('contents');
     }
 
     /**
@@ -282,12 +313,22 @@ class AliyunAdapter extends AbstractAdapter
     public function readStream($path)
     {
         $object = $this->applyPathPrefix($path);
-        $file_dir = sys_get_temp_dir().$object;
+        $file_dir = sys_get_temp_dir().'/'.$object;
+        if (!file_exists(Util::dirname($file_dir))) {
+            mkdir(Util::dirname($file_dir),0777,true);
+        }
+        $stream = fopen($file_dir, "w");
         $options = array(
-            OssClient::OSS_FILE_DOWNLOAD => $file_dir
+            OssClient::OSS_FILE_DOWNLOAD => $stream
         );
-        $content = $this->client->getObject($this->bucket, $object, $options);
-        $stream = fopen($object);
+        $options = array_merge($options, $this->options);
+        try{
+            $content = $this->client->getObject($this->bucket, $object, $options);
+        } catch(OssException $e) {
+            $this->logError($e);
+            return false;
+        }
+//        fclose($stream);
         return compact('content', 'stream', 'file_dir');
     }
 
@@ -296,15 +337,19 @@ class AliyunAdapter extends AbstractAdapter
      */
     public function listContents($directory = '', $recursive = false)
     {
+        $delimiter = '/';
         $nextMarker = '';
         $result = [];
+        $maxkeys = 1000;
         while (true) {
             try {
                 $options = array(
-                    'delimiter' => '',
+                    'delimiter' => $delimiter,
+                    'prefix' => $directory,
+                    'max-keys' => $maxkeys,
                     'marker' => $nextMarker,
                 );
-                $listObjectInfo = $this->client->listObjects($this->client, $options);
+                $listObjectInfo = $this->client->listObjects($this->bucket, $options);
             } catch (OssException $e) {
                 $this->logError($e);
                 return false;
@@ -313,7 +358,6 @@ class AliyunAdapter extends AbstractAdapter
             $nextMarker = $listObjectInfo->getNextMarker();
             $listObject = $listObjectInfo->getObjectList();
             $listPrefix = $listObjectInfo->getPrefixList();
-
             if (!empty($listObject)) {
                 foreach ($listObject as $objectInfo) {
                     $object['Directory']       = $directory;
@@ -341,9 +385,6 @@ class AliyunAdapter extends AbstractAdapter
                 }
             }
 
-//            if ($listObjectInfo->getIsTruncated() !== "true") {
-//                break;
-//            }
             if ($nextMarker === '') {
                 break;
             }
@@ -359,7 +400,7 @@ class AliyunAdapter extends AbstractAdapter
         $object = $this->applyPathPrefix($path);
 
         try {
-            $objectMeta = $this->client->getObjectMeta($this->bucket, $object);
+            $objectMeta = $this->client->getObjectMeta($this->bucket, $object, $this->options);
         } catch (OssException $e) {
             $this->logError($e);
             return false;
@@ -374,6 +415,7 @@ class AliyunAdapter extends AbstractAdapter
     public function getSize($path)
     {
         $metadata = $this->getMetadata($path);
+        $metadata['size'] = $metadata['content-length'];
         return $metadata;
     }
 
@@ -383,6 +425,7 @@ class AliyunAdapter extends AbstractAdapter
     public function getMimetype($path)
     {
         $metadata = $this->getMetadata($path);
+        $metadata['mimetype'] = $metadata['content-type'];
         return $metadata;
     }
 
@@ -392,6 +435,7 @@ class AliyunAdapter extends AbstractAdapter
     public function getTimestamp($path)
     {
         $metadata = $this->getMetadata($path);
+        $metadata['timestamp'] = strtotime( $metadata['last-modified'] );
         return $metadata;
     }
 
@@ -400,8 +444,19 @@ class AliyunAdapter extends AbstractAdapter
      */
     public function getVisibility($path)
     {
-        $metadata = $this->getMetadata($path);
-        return $metadata;
+        $object = $this->applyPathPrefix($path);
+        try {
+            $acl = $this->client->getObjectAcl($this->bucket, $object, $this->options);
+        } catch (OssException $e) {
+            $this->logError($e);
+            return false;
+        }
+        if ($acl == OssClient::OSS_ACL_TYPE_PRIVATE ){
+            $res['visibility'] = AdapterInterface::VISIBILITY_PRIVATE;
+        }else{
+            $res['visibility'] = AdapterInterface::VISIBILITY_PUBLIC;
+        }
+        return $res;
     }
 
 

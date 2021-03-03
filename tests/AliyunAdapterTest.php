@@ -44,14 +44,14 @@ class AliyunAdapterTest extends TestCase
     public function testPut()
     {
         $file_system = $this->getAliyunAdapter();
-        $content = file_get_contents('https://novel-h5-ixcc.oss-cn-shanghai.aliyuncs.com/h5/img/Welfare-bao.6fe0bf36.png');
+        $content = 'test.test';
         $this->assertEquals(true, $file_system->put('test1.png', $content));
     }
 
     public function testPutStream()
     {
         $file_system = $this->getAliyunAdapter();
-        $resource = fopen('./qrcode_bg1.jpg','r');
+        $resource = fopen('./test.test','w');
         $this->assertEquals(true, $file_system->putStream('test1.png', $resource));
     }
 
@@ -62,5 +62,86 @@ class AliyunAdapterTest extends TestCase
         $this->assertEquals(true, $file_system->update('test1.png', $content));
     }
 
+    public function testRename()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $this->assertEquals(true, $file_system->rename('test1.png', 'test2.png'));
+    }
 
+    public function testCopy()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $this->assertEquals(true, $file_system->copy('test2.png', 'test1.png'));
+    }
+
+    public function testDelete()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $this->assertEquals(true, $file_system->delete('test2.png'));
+    }
+
+    public function testCreateDir()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $this->assertEquals(true, $file_system->createDir('test'));
+    }
+
+    public function testDeleteDir()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $this->assertEquals(true, $file_system->deleteDir('test'));
+    }
+
+    public function testSetVisibility()
+    {
+        $file_system = $this->getAliyunAdapter();
+        // private | public
+        $this->assertEquals(true, $file_system->setVisibility('test1.png','private'));
+    }
+
+    public function testHas()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $has = $file_system->has('test1.png');
+        echo $has;
+        $this->assertIsBool(true, $has);
+    }
+
+    public function testRead()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $res = $file_system->read('test1.png');
+        $this->assertNotEquals(null, $res);
+    }
+
+    public function testReadStream()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $res = $file_system->readStream('test1.png');
+        $this->assertNotEquals(false, $res);
+    }
+
+    public function testGetMetadata()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $res = $file_system->getMetadata('test1.png');
+        var_dump($res);
+        $this->assertNotEquals(false, $res);
+    }
+
+    public function testGetSize()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $res = $file_system->getSize('test1.png');
+        var_dump($res);
+        $this->assertNotEquals(false, $res);
+    }
+
+    public function testGetVisibility()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $res = $file_system->getVisibility('test1.png');
+        var_dump($res);
+        $this->assertNotEquals(false, $res);
+    }
 }
