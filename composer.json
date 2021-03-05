@@ -1,6 +1,6 @@
 {
     "name": "qaqzzl/aliyun-laravel-storage",
-    "description": "Aliyun Resource (Cloud) Storage SDK for Laravel 5",
+    "description": "Aliyun Resource (Cloud) Storage SDK for Laravel",
     "type": "library",
     "require": {
         "php": ">=5.4.0",

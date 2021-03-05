@@ -3,6 +3,8 @@ use League\Flysystem\Filesystem;
 use OSS\OssClient;
 use qaqzzl\AliyunStorage\AliyunAdapter;
 use PHPUnit\Framework\TestCase;
+use qaqzzl\AliyunStorage\Plugins\UploadToken;
+
 class AliyunAdapterTest extends TestCase
 {
     function getAliyunAdapter()
@@ -32,7 +34,7 @@ class AliyunAdapterTest extends TestCase
         );
         $qiniu_adapter = new AliyunAdapter($oss_client, $bucket, $access_key, $secret_key);
         $file_system = new Filesystem($qiniu_adapter);
-//            $file_system->addPlugin(new PrivateDownloadUrl());
+        $file_system->addPlugin(new UploadToken());
 
         return $file_system;
     }
