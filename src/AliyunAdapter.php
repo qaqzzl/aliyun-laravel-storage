@@ -10,6 +10,10 @@ use League\Flysystem\Util;
 use OSS\Core\OssException;
 use OSS\OssClient;
 
+/**
+ * Class AliyunAdapter
+ * @package qaqzzl\AliyunStorage
+ */
 class AliyunAdapter extends AbstractAdapter
 {
     //Aliyun OSS Client OssClient

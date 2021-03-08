@@ -146,4 +146,12 @@ class AliyunAdapterTest extends TestCase
         var_dump($res);
         $this->assertNotEquals(false, $res);
     }
+
+    public function testUploadToken()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $res = $file_system->uploadToken();
+        var_dump($res);
+        $this->assertIsString($res);
+    }
 }
