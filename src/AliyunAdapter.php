@@ -68,6 +68,32 @@ class AliyunAdapter extends AbstractAdapter
     }
 
     /**
+     * 获取文件的URL
+     */
+    public function getUrl()
+    {
+
+    }
+
+    /**
+     * 获取文件下载URL
+     * @param $object
+     * @param $timeout
+     * @return false|\OSS\Http\ResponseCore|string
+     */
+    public function downloadUrl($object, $timeout)
+    {
+        try {
+            $sign_url = $this->client->signUrl($this->bucket, $object, $timeout);
+            return $sign_url;
+        } catch (OssException $e) {
+            $this->logError($e);
+            return false;
+        }
+    }
+
+
+    /**
      * Write a new file.
      *
      * @param string $path

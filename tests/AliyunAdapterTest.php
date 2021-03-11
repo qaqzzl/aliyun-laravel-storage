@@ -4,6 +4,7 @@ use OSS\OssClient;
 use qaqzzl\AliyunStorage\AliyunAdapter;
 use PHPUnit\Framework\TestCase;
 use qaqzzl\AliyunStorage\Plugins\UploadToken;
+use qaqzzl\AliyunStorage\Plugins\DownloadUrl;
 
 class AliyunAdapterTest extends TestCase
 {
@@ -35,6 +36,7 @@ class AliyunAdapterTest extends TestCase
         $qiniu_adapter = new AliyunAdapter($oss_client, $bucket, $access_key, $secret_key);
         $file_system = new Filesystem($qiniu_adapter);
         $file_system->addPlugin(new UploadToken());
+        $file_system->addPlugin(new DownloadUrl());
 
         return $file_system;
     }
@@ -151,6 +153,14 @@ class AliyunAdapterTest extends TestCase
     {
         $file_system = $this->getAliyunAdapter();
         $res = $file_system->uploadToken();
+        var_dump($res);
+        $this->assertIsString($res);
+    }
+
+    public function testDownloadUrl()
+    {
+        $file_system = $this->getAliyunAdapter();
+        $res = $file_system->downloadUrl('test1.png', 3600);
         var_dump($res);
         $this->assertIsString($res);
     }

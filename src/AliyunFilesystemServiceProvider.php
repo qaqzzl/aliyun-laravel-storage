@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\ServiceProvider;
 use OSS\OssClient;
 use qaqzzl\AliyunStorage\Plugins\UploadToken;
-
+use qaqzzl\AliyunStorage\Plugins\DownloadUrl;
 class AliyunFilesystemServiceProvider extends ServiceProvider
 {
     public function boot()
@@ -31,6 +31,7 @@ class AliyunFilesystemServiceProvider extends ServiceProvider
             $qiniu_adapter = new AliyunAdapter($oss_client, $bucket, $access_key, $secret_key);
             $file_system = new Filesystem($qiniu_adapter);
             $file_system->addPlugin(new UploadToken());
+            $file_system->addPlugin(new DownloadUrl());
 
             return $file_system;
         });
